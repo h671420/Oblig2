@@ -19,6 +19,7 @@ class Task4
         int day = 0;
         while (running)
         {
+
             Console.WriteLine("Day:"+day+"\nPlease return one of the following:\n"
                 + "\t1. to select a new day\n"
                 + "\t2. to inspect a spaceobject\n"
