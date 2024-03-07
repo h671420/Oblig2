@@ -14,17 +14,19 @@ class Task4
 {
     public static void Main()
     {
-        List<SpaceObject> spaceObjects = SpaceSim.Utils.fetchSpaceObjects();
+        Solarsystem solarsystem = new Solarsystem();    
+        SpaceObject spaceObject = solarsystem.star;
         bool running = true;
-        int day = 0;
         while (running)
         {
-
-            Console.WriteLine("Day:"+day+"\nPlease return one of the following:\n"
-                + "\t1. to select a new day\n"
-                + "\t2. to inspect a spaceobject\n"
+            Console.WriteLine("Day:" + solarsystem.getDay()+ ", Selected object: " + spaceObject.name);
+            spaceObject.printInfo();
+            Console.WriteLine("Please return one of the following:\n"
+                + "\t1. Select a new day\n"
+                + "\t2. Select a different spaceobject\n"
                 + "\t3. to do a printout of all spaceobjects\n"
                 + "\t0. to exit program");
+
             string input = Console.ReadLine()!;
             switch (input)
             {
@@ -32,8 +34,8 @@ class Task4
                     Console.Write("Please return a new day: ");
                     input = Console.ReadLine()!;
                     try 
-                    { 
-                        day = int.Parse(input); 
+                    {
+                        solarsystem.setDay(int.Parse(input));
                     }
                     catch (FormatException)
                     {
@@ -44,11 +46,21 @@ class Task4
                     break;
 
                 case "2":
+                    Console.WriteLine("Please return the name of the spaceobject");
+                    input=Console.ReadLine()!;
+                    SpaceObject? newSpaceObject= solarsystem.spaceObjects.Find((o) => o.name == input);
+                    if (newSpaceObject == null)
+                    {
+                        Console.WriteLine("No such object");
+                        Console.ReadLine();
+                    }
+                    else
+                        spaceObject = newSpaceObject;
                     break;
 
                 case "3":
                     Console.Clear();
-                    foreach (var item in spaceObjects)
+                    foreach (var item in solarsystem.spaceObjects)
                     {
                         item.printInfo();
                     }
@@ -61,6 +73,5 @@ class Task4
             }
             Console.Clear();
         }
-        
     }
 }

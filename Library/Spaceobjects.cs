@@ -3,6 +3,7 @@ using System.IO;
 using System.Drawing;
 
 using OfficeOpenXml;
+using System.Numerics;
 //using OfficeOpenXml.Style;
 //using System.Runtime.InteropServices;
 //using static OfficeOpenXml.ExcelErrorValue;
@@ -13,117 +14,214 @@ namespace SpaceSim
     public class SpaceObject
     {
         public string name { get; set; }
-        public int radius { get; set; }
         public Color color { get; set; }
-        public int xPos { get; set; }
-        public int yPos { get; set; }
+        public double radius { get; set; }
+        public double xPos { get; set; }
+        public double yPos { get; set; }
+        public List<Rotational> children{ get; set; }
 
-        public SpaceObject(string name)
+        public SpaceObject(string name, Color color, double radius)
         {
             this.name = name;
+            this.color = color;
+            this.radius = radius;
+            this.xPos = 0;
+            this.yPos = 0;
+            this.children = new List<Rotational>();    
+        }
+        public virtual void CalculatePosition(int days)
+        {
+            foreach (var item in children)
+            {
+                item.CalculatePosition(days);
+            }
         }
         public virtual void printInfo() {
-            Console.Write("Hello from spaceobject! ");
+            Console.Write
+                (
+                "\n"+
+                "Name: " +name+"  "+
+                "Type: " +this.GetType().Name +"  "+
+                "children: " + children.Count + "\n" +
+                "\t"+"Body data->  "+
+                "Color: "+color + " "+
+                "Radius: "+radius + "  "+
+                "Position: [" + (int)xPos + "," + (int)yPos + "]" + "  "+
+                 "\n"
+                );
         }
     }
     public class Rotational:SpaceObject
     {       
-        public int orbitalRadius {  get; set; }
-        public int orbitalPeriod { get; set; }
-        
-        public int rotationalPeriod { get; set; }
-        
-        public SpaceObject? anchor { get; set; }
+        public double orbitalRadius {  get; set; }
+        public double orbitalPeriod { get; set; }
+        public SpaceObject anchor { get; set; }
 
-        public Rotational(string name): base(name){}
+        public Rotational(
+            string name, Color color, double radius,
+            double OrbitalRadius, double orbitalPeriod, SpaceObject anchor
+            ) : base(name,color, radius) 
+        {
+            this.anchor = anchor;
+            this.orbitalRadius = OrbitalRadius;
+            this.orbitalPeriod = orbitalPeriod;
+        }
         public override void printInfo() {
             base.printInfo();
-            Console.Write("Hello from rotational! ");
+            Console.Write
+                (
+                "\t" +
+                "Orbital data->  " +
+                "Barycenter: " + anchor.name + "  " +
+                "Orbital radius: " + orbitalRadius + "  " +
+                "Orbital period " + orbitalPeriod + "\n"
+                );
         }
 
-        /*
-        public void Orbitalcalc(double years)
+        
+        public override void CalculatePosition(int days)
         {
-            double d = years / (2 * Math.PI);
-            //tid = 0 dager
-            xVal = anchor.xVal + this.orbitalRadius * (int)Math.Sin(d);
-            yVal = anchor.yVal + this.orbitalRadius * (int)Math.Cos(d);
-
+            double d = 2 * Math.PI * (days / this.orbitalPeriod);
+            xPos = anchor.xPos + this.orbitalRadius * Math.Cos(d);
+            yPos = anchor.yPos + this.orbitalRadius * Math.Sin(d);
+            base.CalculatePosition(days);
         }
-        */
+        
     }
-    public class Star : Rotational
+    public class Star : SpaceObject
     {
-        public Star(String name):base(name) { }
+        public Star(string name, Color color, double radius) :base(name, color, radius) { }
         public override void printInfo()
         {
             base.printInfo();
-            Console.WriteLine("Hello from Star: " + name);
+            Console.WriteLine();
         }
 
     }
     public class Planet : Rotational
     {
-        public Planet(String name) : base(name) { }
+        public Planet
+            (string name, Color color, double radius,
+            double OrbitalRadius, double orbitalPeriod, SpaceObject anchor) : 
+            base(name, color, radius, OrbitalRadius,orbitalPeriod,anchor) {}
         public override void printInfo()
         {
             base.printInfo();
-            Console.WriteLine("Hello from Planet: " + name);
+            Console.WriteLine();
         }
     }
     public class Moon : Rotational
     {
-        public Moon(String name) : base(name) { }
+        public Moon
+            (string name, Color color, double radius, 
+            double OrbitalRadius, double orbitalPeriod, SpaceObject anchor) :
+            base(name, color, radius, OrbitalRadius, orbitalPeriod, anchor)
+        { }
         public override void printInfo()
         {
             base.printInfo();
-            Console.WriteLine("Hello from Moon: "+name);
-            
+            Console.WriteLine();
         }
     }
+    public class Solarsystem
+    {
+        private int day;
+        public void setDay(int day)
+        {
+            this.day= day;
+            star.CalculatePosition(day);
+        }
+        public int getDay()
+        {
+            return day;
+        }
+        
+        public List<SpaceObject> spaceObjects { get; set; }
+        public Star star { get; set; }
+
+        public Solarsystem()
+        {
+            day = 0;
+            spaceObjects = Utils.fetchSpaceObjects();
+            Star? starObject = spaceObjects.Find(o => o.GetType() == typeof(Star)) as Star;
+            if (starObject != null)
+                star = starObject;
+            else
+                throw new Exception("No star!");
+            star.CalculatePosition(day);
+        }
+        public double calculateRadius()
+        {
+            Rotational furthestPlanet = star.children.First();
+            
+            foreach (var item in star.children)
+            {
+                if (item.orbitalRadius> furthestPlanet.orbitalRadius)
+                    furthestPlanet = item;
+            }
+            Rotational furthestMoon = furthestPlanet.children.First();
+            foreach (var item in furthestPlanet.children)
+            {
+                if (item.orbitalRadius > furthestMoon.orbitalRadius)
+                    furthestMoon = item;
+            }
+            return furthestPlanet.orbitalRadius + furthestMoon.orbitalRadius;
+        }
+    }
+
 
     public class Utils
     {
         public static List<SpaceObject> fetchSpaceObjects()
         {
-            string filepath = "C:\\Users\\Admin\\OneDrive\\Skrivebord\\Skolegreier\\V2024\\DAT154\\Assignments\\Assignment 2\\Task1\\Library\\Planets.xlsx";
-            string mystring = "";
+
+            string filepath = "C:\\Users\\chris\\Source\\Repos\\Oblig2\\Library\\Planets.xlsx";
+        
             List<SpaceObject> spaceObjects = new();
 
             ExcelWorksheet ark1 = new ExcelPackage(filepath).Workbook.Worksheets.First();
 
             int row = 2;
-            String name = (string)ark1.Cells[row, 1].Value;
-            String Class = (string)ark1.Cells[row, 2].Value;
-            String parent = (string)ark1.Cells[row, 3].Value;
-            Double OrbitalRadius = ark1.Cells[row, 4].GetValue<Double>();
-            Double OrbitalPeriod = ark1.Cells[row, 5].GetValue<Double>();
-
-            while (name != null)
+            String name;
+            do
             {
+                String Class = (string)ark1.Cells[row, 1].Value;
+                name = (string)ark1.Cells[row, 2].Value;
+                String color = (string)ark1.Cells[row, 3].Value;
+                double Radius = ark1.Cells[row, 4].GetValue<double>();
+                String parentName = (string)ark1.Cells[row, 5].Value;
+                double OrbitalRadius = ark1.Cells[row, 6].GetValue<double>();
+                double OrbitalPeriod = ark1.Cells[row, 7].GetValue<double>();
+
+                SpaceObject? parent = spaceObjects.Find((o) => o.name == parentName);
+               
                 switch (Class)
                 {
                     case "Star":
-                        Star star = new Star(name);
+                        Star star = new(name, Color.FromName(color), Radius);
                         spaceObjects.Add(star);
                         break;
                     case "Planet":
-                        Planet planet = new(name);
-                        spaceObjects.Add(planet);
+                        if (parent != null)
+                        {
+                            Planet planet = new(name, Color.FromName(color), Radius, OrbitalRadius, OrbitalPeriod, parent);
+                            parent.children.Add(planet);
+                            spaceObjects.Add(planet);
+                        }
                         break;
                     case "Moon":
-                        Moon moon = new(name);
-                        spaceObjects.Add(moon);
+                        if(parent != null)
+                        {
+                            Moon moon = new(name, Color.FromName(color), Radius, OrbitalRadius, OrbitalPeriod, parent);
+                            parent.children.Add(moon);
+                            spaceObjects.Add(moon);
+                        }
                         break;
                 }
                 row++;
-                name = (string)ark1.Cells[row, 1].Value;
-                Class = (string)ark1.Cells[row, 2].Value;
-                parent = (string)ark1.Cells[row, 3].Value;
-                OrbitalRadius = ark1.Cells[row, 4].GetValue<Double>();
-                OrbitalPeriod = ark1.Cells[row, 5].GetValue<Double>();
-            }
+
+            } while (name != null);
             return spaceObjects;
-        }
+        }   
     }
 }
