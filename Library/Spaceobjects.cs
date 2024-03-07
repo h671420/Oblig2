@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Drawing;
 
 using OfficeOpenXml;
@@ -85,8 +86,8 @@ namespace SpaceSim
     {
         public static List<SpaceObject> fetchSpaceObjects()
         {
-            //string filepath = "C:\\Users\\Admin\\OneDrive\\Skrivebord\\Skolegreier\\V2024\\DAT154\\Assignments\\Assignment 2\\Planets.xlsx";
             string filepath = "C:\\Users\\Admin\\OneDrive\\Skrivebord\\Skolegreier\\V2024\\DAT154\\Assignments\\Assignment 2\\Task1\\Library\\Planets.xlsx";
+            string mystring = "";
             List<SpaceObject> spaceObjects = new();
 
             ExcelWorksheet ark1 = new ExcelPackage(filepath).Workbook.Worksheets.First();
