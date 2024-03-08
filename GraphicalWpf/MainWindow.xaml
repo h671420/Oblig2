@@ -5,6 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GraphicalWpf"
         mc:Ignorable="d"
-        Title="MainWindow" Width="960" Height="540" >
-    
+        Title="MainWindow" Width="960" Height="540" Background="White" >
+    <Canvas></Canvas>
 </Window>

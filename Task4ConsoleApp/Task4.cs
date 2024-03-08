@@ -19,9 +19,9 @@ class Task4
         bool running = true;
         while (running)
         {
-            Console.WriteLine("Day:" + solarsystem.getDay()+ ", Selected object: " + spaceObject.name);
-            spaceObject.printInfo();
-            Console.WriteLine("Please return one of the following:\n"
+            Console.WriteLine("\nDay:" + solarsystem.getDay()+ ", Selected object: " + spaceObject.name);
+            spaceObject.printInfoWithChildren();
+            Console.WriteLine("\nPlease return one of the following:\n"
                 + "\t1. Select a new day\n"
                 + "\t2. Select a different spaceobject\n"
                 + "\t3. to do a printout of all spaceobjects\n"
@@ -35,11 +35,11 @@ class Task4
                     input = Console.ReadLine()!;
                     try 
                     {
-                        solarsystem.setDay(int.Parse(input));
+                        solarsystem.setDay(double.Parse(input));
                     }
                     catch (FormatException)
                     {
-                        Console.WriteLine("The value couldn't be converted to a whole number\nHit enter to return");
+                        Console.WriteLine("The value couldn't be converted to a number\nHit enter to return");
                         Console.ReadLine();
                         break;
                     }
@@ -59,7 +59,6 @@ class Task4
                     break;
 
                 case "3":
-                    Console.Clear();
                     foreach (var item in solarsystem.spaceObjects)
                     {
                         item.printInfo();
