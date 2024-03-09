@@ -186,7 +186,7 @@ namespace SpaceSim
                 String color = (string)ark1.Cells[row, 3].Value;
                 double Radius = ark1.Cells[row, 4].GetValue<double>();
                 String parentName = (string)ark1.Cells[row, 5].Value;
-                double OrbitalRadius = ark1.Cells[row, 6].GetValue<double>();
+                double OrbitalRadius = ark1.Cells[row, 6].GetValue<double>()*1000;
                 double OrbitalPeriod = ark1.Cells[row, 7].GetValue<double>();
 
                 SpaceObject? parent = spaceObjects.Find((o) => o.name == parentName);
@@ -195,13 +195,11 @@ namespace SpaceSim
                 {
                     case "Star":
                         Star star = new(name, color, Radius);
-                        //Star star = new(name, Color.FromName(color), Radius);
                         spaceObjects.Add(star);
                         break;
                     case "Planet":
                         if (parent != null)
                         {
-                            //Planet planet = new(name, Color.FromName(color), Radius, OrbitalRadius, OrbitalPeriod, parent);
                             Planet planet = new(name, color, Radius, OrbitalRadius, OrbitalPeriod, parent);
                             parent.children.Add(planet);
                             spaceObjects.Add(planet);
@@ -211,7 +209,6 @@ namespace SpaceSim
                         if (parent != null)
                         {
                             Moon moon = new(name, color, Radius, OrbitalRadius, OrbitalPeriod, parent);
-                            //Moon moon = new(name, Color.FromName(color), Radius, OrbitalRadius, OrbitalPeriod, parent);
                             parent.children.Add(moon);
                             spaceObjects.Add(moon);
                         }

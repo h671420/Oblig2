@@ -36,12 +36,12 @@ namespace GraphicalWpf
         private void Timer_Tick(object? sender, EventArgs e)
         {
             canvas.solarsystem.setDay(canvas.solarsystem.getDay()+10);
-            canvas.resize(canvas.Width);
+            canvas.Draw(canvas.Width);
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            this.canvas.resize(Math.Min(e.NewSize.Width, e.NewSize.Height - 35));   
+            this.canvas.Draw(Math.Min(e.NewSize.Width, e.NewSize.Height - 35));   
         }
     }
     public class SolarsystemCanvas : Canvas
@@ -63,27 +63,18 @@ namespace GraphicalWpf
 
             }
         }
-        public void resize(double newSideLength)
+        public void Draw(double newSideLength)
         {
             this.Width = this.Height= newSideLength;
             foreach (var drawingObject in drawingObjects)
             {
-                Position canvasPosition = SolarsystemPosToCanvasPos(drawingObject.spaceObject);
-                Canvas.SetTop(drawingObject.ellipse, canvasPosition.Y);
-                Canvas.SetLeft(drawingObject.ellipse, canvasPosition.X);
+                drawingObject.Draw(this);
             }
-        }
-        public Position SolarsystemPosToCanvasPos(SpaceObject spaceObject)
-        {
-            double factor = solarsystem.calculateRadius() *2 / this.Width*1.05;
-            Position CanvasPos = new Position();
-            CanvasPos.X = -2.5/*-spaceObject.radius / factor +*/ +spaceObject.position.X / factor + this.Width / 2;
-            CanvasPos.Y = -2.5/*-spaceObject.radius / factor +*/ +spaceObject.position.Y / factor + this.Height / 2;
-            return CanvasPos; 
         }
     }
     public class DrawingObject
     {
+        //infobox
         public SpaceObject spaceObject { get; set; }
         public Ellipse ellipse { get; set; }
 
@@ -91,9 +82,27 @@ namespace GraphicalWpf
         {   
             this.spaceObject = spaceObject;
             this.ellipse = ellipse;
-            ellipse.Height = ellipse.Width = 5;
             Color color = (Color)ColorConverter.ConvertFromString(spaceObject.color);
             ellipse.Fill = new SolidColorBrush(color); 
+        }
+        public void Draw(SolarsystemCanvas solarsystemCanvas) {
+            
+            double factor = solarsystemCanvas.solarsystem.calculateRadius() * 2 / solarsystemCanvas.Width * 1.05;
+            ellipse.Height = ellipse.Width = spaceObject.radius/factor;
+            ellipse.Height = ellipse.Width = 5;
+            Position canvasPosition = SolarsystemPosToCanvasPos(spaceObject, solarsystemCanvas);
+            Canvas.SetTop(ellipse, canvasPosition.Y);
+            Canvas.SetLeft(ellipse, canvasPosition.X);
+        }
+        public Position SolarsystemPosToCanvasPos(SpaceObject spaceObject,SolarsystemCanvas solarsystemCanvas)
+        {
+            double factor = solarsystemCanvas.solarsystem.calculateRadius() * 2 / solarsystemCanvas.Width * 1.05;
+            Position CanvasPos = new Position();
+            CanvasPos.X = -spaceObject.radius / 2*factor + spaceObject.position.X / factor + solarsystemCanvas.Width / 2;
+            CanvasPos.Y = -spaceObject.radius / 2*factor + spaceObject.position.Y / factor + solarsystemCanvas.Height / 2;
+            CanvasPos.X = -2.5 + spaceObject.position.X / factor + solarsystemCanvas.Width / 2;
+            CanvasPos.Y = -2.5 + spaceObject.position.Y / factor + solarsystemCanvas.Height / 2;
+            return CanvasPos;
         }
     }
 }
