@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,90 +21,85 @@ namespace GraphicalWpf
         public MainWindow()
         {
             InitializeComponent();
-
+            WindowStyle = WindowStyle.ThreeDBorderWindow;
             this.SizeChanged += MainWindow_SizeChanged;
 
-            canvas= new(this.Width, this.Height);
-            this.Content = canvas;
+
+            scaleSlider.ValueChanged += ScaleSlider_ValueChanged;
+            canvas = new(this.Width, this.Height, scaleSlider.Value);
+            mainGrid.Children.Add(canvas);
+            Grid.SetColumn(canvas, 1);
+            Grid.SetRow(canvas, 0);
+
+            scrollViewer.VerticalScrollBarVisibility= ScrollBarVisibility.Auto;
+            scrollViewer.Content = createStackPanel(canvas.selectedObject);
 
             DispatcherTimer timer = new DispatcherTimer()
             {
                 Interval = TimeSpan.FromMilliseconds(16)
             };
+            
             timer.Tick += Timer_Tick;
             timer.Start();
+        }
+        private StackPanel createStackPanel(DrawingObject drawingObject)
+        {
+            StackPanel panel = new StackPanel();
+            Button button = new Button();
+            button.Content = drawingObject.spaceObject.GetType().Name+ " " + drawingObject.spaceObject.name+ " children: "+drawingObject.children.Count;
+            button.HorizontalContentAlignment = HorizontalAlignment.Left;
+            button.KeyDown += (sender, args) =>
+            {
+                Button clickedButton = (Button)sender;
+                switch (args.Key)
+                {
+                    case Key.Enter:
+                        break;
+                    case Key.Left:
+                        foreach (UIElement element in panel.Children)
+                        {
+                            if (!(element is Button))
+                                element.Visibility = Visibility.Collapsed;
+                        }
+                        break;
+                    case Key.Right:
+                        foreach (UIElement element in panel.Children)
+                        {
+                            if (!(element is Button))
+                                element.Visibility = Visibility.Visible;
+                        }
+                        break;
+                }
+            };
+            button.Click += (sender, args) =>
+            {
+                canvas.selectedObject = drawingObject;
+            };
+            panel.Children.Add(button);
+            foreach (var child in drawingObject.children)
+            {
+                panel.Children.Add(createStackPanel(child));
+            }
+            return panel;
+        }
+
+        private void ScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Slider slider = (Slider)sender;
+            canvas.scale = slider.Value;
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            canvas.solarsystem.setDay(canvas.solarsystem.getDay()+10);
+            canvas.solarsystem.setDay(canvas.solarsystem.getDay()+5);
             canvas.Draw(canvas.Width);
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            this.canvas.Draw(Math.Min(e.NewSize.Width, e.NewSize.Height - 35));   
+            this.canvas.Draw(Math.Min(e.NewSize.Width, e.NewSize.Height - 36));   
         }
     }
-    public class SolarsystemCanvas : Canvas
-    {
-        public Solarsystem solarsystem { get; set; }
-
-        List<DrawingObject> drawingObjects = new List<DrawingObject>();
-        public SolarsystemCanvas(double WindowWidth, double WindowHeight) 
-        {
-            this.solarsystem = new();
-            this.Background = new SolidColorBrush(Colors.Black);
-
-            foreach (var item in solarsystem.spaceObjects)
-            {
-                Ellipse ellipse = new();
-                this.Children.Add(ellipse); 
-                DrawingObject drawing = new(item,ellipse);
-                drawingObjects.Add(drawing);
-
-            }
-        }
-        public void Draw(double newSideLength)
-        {
-            this.Width = this.Height= newSideLength;
-            foreach (var drawingObject in drawingObjects)
-            {
-                drawingObject.Draw(this);
-            }
-        }
-    }
-    public class DrawingObject
-    {
-        //infobox
-        public SpaceObject spaceObject { get; set; }
-        public Ellipse ellipse { get; set; }
-
-        public DrawingObject(SpaceObject spaceObject, Ellipse ellipse)
-        {   
-            this.spaceObject = spaceObject;
-            this.ellipse = ellipse;
-            Color color = (Color)ColorConverter.ConvertFromString(spaceObject.color);
-            ellipse.Fill = new SolidColorBrush(color); 
-        }
-        public void Draw(SolarsystemCanvas solarsystemCanvas) {
-            
-            double factor = solarsystemCanvas.solarsystem.calculateRadius() * 2 / solarsystemCanvas.Width * 1.05;
-            ellipse.Height = ellipse.Width = spaceObject.radius/factor;
-            ellipse.Height = ellipse.Width = 5;
-            Position canvasPosition = SolarsystemPosToCanvasPos(spaceObject, solarsystemCanvas);
-            Canvas.SetTop(ellipse, canvasPosition.Y);
-            Canvas.SetLeft(ellipse, canvasPosition.X);
-        }
-        public Position SolarsystemPosToCanvasPos(SpaceObject spaceObject,SolarsystemCanvas solarsystemCanvas)
-        {
-            double factor = solarsystemCanvas.solarsystem.calculateRadius() * 2 / solarsystemCanvas.Width * 1.05;
-            Position CanvasPos = new Position();
-            CanvasPos.X = -spaceObject.radius / 2*factor + spaceObject.position.X / factor + solarsystemCanvas.Width / 2;
-            CanvasPos.Y = -spaceObject.radius / 2*factor + spaceObject.position.Y / factor + solarsystemCanvas.Height / 2;
-            CanvasPos.X = -2.5 + spaceObject.position.X / factor + solarsystemCanvas.Width / 2;
-            CanvasPos.Y = -2.5 + spaceObject.position.Y / factor + solarsystemCanvas.Height / 2;
-            return CanvasPos;
-        }
-    }
+    
+    
 }

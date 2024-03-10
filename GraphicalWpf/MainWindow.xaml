@@ -6,5 +6,24 @@
         xmlns:local="clr-namespace:GraphicalWpf"
         mc:Ignorable="d"
         Title="MainWindow" Width="960" Height="540" Background="White" >
-    <Canvas></Canvas>
+    <Grid x:Name="mainGrid" HorizontalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Name="userinputs" Grid.Column="0" Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="Scale slider"></TextBlock>
+            <Slider Grid.Column="0" Grid.Row="1" Name="scaleSlider" Value="17870" Minimum="0" Maximum="20000"/>
+        </Grid>
+        <ScrollViewer Name="scrollViewer" Grid.Column="2" Width="200"></ScrollViewer>
+    </Grid>
 </Window>

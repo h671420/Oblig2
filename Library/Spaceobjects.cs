@@ -174,7 +174,7 @@ namespace SpaceSim
             string filepath = "C:\\Users\\chris\\Source\\Repos\\Oblig2\\Library\\Planets.xlsx";
 
             List<SpaceObject> spaceObjects = new();
-
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             ExcelWorksheet ark1 = new ExcelPackage(filepath).Workbook.Worksheets.First();
 
             int row = 2;
