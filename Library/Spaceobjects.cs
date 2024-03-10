@@ -4,19 +4,18 @@ using System.Drawing;
 
 using OfficeOpenXml;
 using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
 
 namespace SpaceSim
 {
     public class SpaceObject
     {
         public string name { get; set; }
-        //public Color color { get; set; } //System.Windows.Media.Color
         public string color { get; set; }   
         public double radius { get; set; }
         public Position position { get; set; }
         public List<Rotational> children { get; set; }
 
-        //public SpaceObject(string name, Color color, double radius)
         public SpaceObject(string name, string color, double radius)
         {
             this.name = name;
@@ -63,7 +62,6 @@ namespace SpaceSim
         public SpaceObject anchor { get; set; }
 
         public Rotational(
-//            string name, Color color, double radius,
                 string name, string color, double radius,
             double OrbitalRadius, double orbitalPeriod, SpaceObject anchor
             ) : base(name, color, radius)
@@ -96,7 +94,6 @@ namespace SpaceSim
     }
     public class Star : SpaceObject
     {
-        //public Star(string name, Color color, double radius) : base(name, color, radius) { }
         public Star(string name, string color, double radius) : base(name, color, radius) { }
 
     }
@@ -104,7 +101,6 @@ namespace SpaceSim
     {
         public Planet
             (string name, string color, double radius,
-            //(string name, Color color, double radius,
             double OrbitalRadius, double orbitalPeriod, SpaceObject anchor) :
             base(name, color, radius, OrbitalRadius, orbitalPeriod, anchor)
         { }
@@ -114,7 +110,6 @@ namespace SpaceSim
     {
         public Moon
             (string name, string color, double radius,
-            //(string name, Color color, double radius,
             double OrbitalRadius, double orbitalPeriod, SpaceObject anchor) :
             base(name, color, radius, OrbitalRadius, orbitalPeriod, anchor)
         { }
@@ -162,6 +157,38 @@ namespace SpaceSim
                     furthestMoon = item;
             }
             return furthestPlanet.orbitalRadius + furthestMoon.orbitalRadius;
+        }
+        public double calculateRadius(SpaceObject spaceObject)
+        {
+            double radiusThis;
+            if (!(spaceObject is SpaceSim.Rotational))
+                radiusThis = 0;
+            else
+            {
+                Rotational rotational = (SpaceSim.Rotational)spaceObject;
+                radiusThis = rotational.orbitalRadius;
+            }
+            double radiusCurrentChild = 0;
+            foreach (Rotational child in spaceObject.children)
+            {
+                double radiusNextChild = calculateRadius(child);
+                if (radiusNextChild > radiusCurrentChild)
+                    radiusCurrentChild = radiusNextChild;
+            }
+            return radiusCurrentChild+radiusThis;
+        }
+        public double calculateRadiusExThis(SpaceObject spaceObject)
+        {
+            double span;
+            if (!(spaceObject is SpaceSim.Rotational)) 
+                span = calculateRadius(spaceObject);
+            else {
+                Rotational rotational = ( SpaceSim.Rotational)spaceObject;
+                span = calculateRadius(rotational)-rotational.orbitalRadius;
+            }
+            if (span == 0)
+                span = spaceObject.radius * 1.5;
+            return span;
         }
     }
 

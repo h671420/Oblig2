@@ -15,15 +15,26 @@
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
-        <Grid Name="userinputs" Grid.Column="0" Grid.Row="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"></RowDefinition>
-                <RowDefinition Height="Auto"></RowDefinition>
-                <RowDefinition Height="Auto"></RowDefinition>
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Column="0" Grid.Row="0" Text="Scale slider"></TextBlock>
-            <Slider Grid.Column="0" Grid.Row="1" Name="scaleSlider" Value="17870" Minimum="0" Maximum="20000"/>
-        </Grid>
-        <ScrollViewer Name="scrollViewer" Grid.Column="2" Width="200"></ScrollViewer>
+        <StackPanel>
+            <Border BorderBrush="Black" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Scale slider"></TextBlock>
+                    <Slider Grid.Column="0" Grid.Row="1" Name="scaleSlider" Value="60" Minimum="0" Maximum="104"/>
+                </StackPanel>
+            </Border>
+            <Border BorderBrush="Black" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Days per second"></TextBlock>
+                    <Slider Grid.Column="0" Grid.Row="1" Name="timeScale" Value="0" Minimum="0" Maximum="3650"/>
+                </StackPanel>
+            </Border>
+            <Border BorderBrush="Black" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Frames per second"></TextBlock>
+                    <Slider Grid.Column="0" Grid.Row="1" Name="frameScale" Value="0" Minimum="0" Maximum="200"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <ScrollViewer Name="PlanetBrowser" Grid.Column="2" Width="200"></ScrollViewer>
     </Grid>
 </Window>

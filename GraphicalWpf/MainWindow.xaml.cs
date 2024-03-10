@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows;
@@ -17,37 +18,28 @@ namespace GraphicalWpf
 {
     public partial class MainWindow : Window
     {
-        SolarsystemCanvas canvas;
+        public SolarsystemCanvas solarSystemCanvas { get; set; }
         public MainWindow()
         {
             InitializeComponent();
-            WindowStyle = WindowStyle.ThreeDBorderWindow;
             this.SizeChanged += MainWindow_SizeChanged;
+            solarSystemCanvas = new(this.Width, this.Height, scaleSlider.Value);
+            mainGrid.Children.Add(solarSystemCanvas);
+            Grid.SetColumn(solarSystemCanvas, 1);
+            Grid.SetRow(solarSystemCanvas, 0);
 
+            Config config = new(this);
 
-            scaleSlider.ValueChanged += ScaleSlider_ValueChanged;
-            canvas = new(this.Width, this.Height, scaleSlider.Value);
-            mainGrid.Children.Add(canvas);
-            Grid.SetColumn(canvas, 1);
-            Grid.SetRow(canvas, 0);
-
-            scrollViewer.VerticalScrollBarVisibility= ScrollBarVisibility.Auto;
-            scrollViewer.Content = createStackPanel(canvas.selectedObject);
-
-            DispatcherTimer timer = new DispatcherTimer()
-            {
-                Interval = TimeSpan.FromMilliseconds(16)
-            };
-            
-            timer.Tick += Timer_Tick;
-            timer.Start();
+            PlanetBrowser.Content = createStackPanel(solarSystemCanvas.selectedObject);
         }
         private StackPanel createStackPanel(DrawingObject drawingObject)
         {
-            StackPanel panel = new StackPanel();
-            Button button = new Button();
-            button.Content = drawingObject.spaceObject.GetType().Name+ " " + drawingObject.spaceObject.name+ " children: "+drawingObject.children.Count;
-            button.HorizontalContentAlignment = HorizontalAlignment.Left;
+            StackPanel panel = new();
+            Button button = new()
+            {
+                Content = drawingObject.spaceObject.GetType().Name + " " + drawingObject.spaceObject.name + " children: " + drawingObject.children.Count,
+                HorizontalContentAlignment = HorizontalAlignment.Left
+            };
             button.KeyDown += (sender, args) =>
             {
                 Button clickedButton = (Button)sender;
@@ -58,14 +50,14 @@ namespace GraphicalWpf
                     case Key.Left:
                         foreach (UIElement element in panel.Children)
                         {
-                            if (!(element is Button))
+                            if (element is not Button)
                                 element.Visibility = Visibility.Collapsed;
                         }
                         break;
                     case Key.Right:
                         foreach (UIElement element in panel.Children)
                         {
-                            if (!(element is Button))
+                            if (element is not Button)
                                 element.Visibility = Visibility.Visible;
                         }
                         break;
@@ -73,7 +65,9 @@ namespace GraphicalWpf
             };
             button.Click += (sender, args) =>
             {
-                canvas.selectedObject = drawingObject;
+                removeEllipses(solarSystemCanvas.selectedObject);
+                addEllipses(drawingObject);
+                solarSystemCanvas.selectedObject = drawingObject;
             };
             panel.Children.Add(button);
             foreach (var child in drawingObject.children)
@@ -82,24 +76,78 @@ namespace GraphicalWpf
             }
             return panel;
         }
-
-        private void ScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        public void removeEllipses(DrawingObject drawingObject)
         {
-            Slider slider = (Slider)sender;
-            canvas.scale = slider.Value;
+            solarSystemCanvas.Children.Remove(drawingObject.ellipse);
+            foreach (var child in drawingObject.children)
+                removeEllipses(child);
         }
-
-        private void Timer_Tick(object? sender, EventArgs e)
+        public void addEllipses(DrawingObject drawingObject)
         {
-            canvas.solarsystem.setDay(canvas.solarsystem.getDay()+5);
-            canvas.Draw(canvas.Width);
+            solarSystemCanvas.Children.Add(drawingObject.ellipse);
+            foreach (var child in drawingObject.children)
+                addEllipses(child);
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            this.canvas.Draw(Math.Min(e.NewSize.Width, e.NewSize.Height - 36));   
+            this.solarSystemCanvas.Draw(Math.Min(e.NewSize.Width, e.NewSize.Height - 36));
         }
     }
-    
-    
+    public class Config
+    {
+        private Window window;
+        private DispatcherTimer timer;
+
+
+        private double FramesPerSecond;
+        public void setFramesPerSecond(double fps)
+        {
+            if (fps < 10)
+            {
+                timer.Stop();
+            }
+            else if (fps > 120)
+            {
+                //do nothing
+            }
+            else
+            {
+                FramesPerSecond = fps;
+            }
+        }
+        private double DaysPerSecond;
+        private double DistanceScale;
+
+        public Config(MainWindow window)
+        {
+            this.window = window;
+            this.timer = new DispatcherTimer();
+            this.DistanceScale = 60;
+            this.DaysPerSecond = 0;
+            this.FramesPerSecond = 60;
+            timer.Interval = timeSpanFromFps();
+            timer.Tick += (sender, args) => {
+                window.solarSystemCanvas.solarsystem.setDay(window.solarSystemCanvas.solarsystem.getDay() + DaysPerSecond / FramesPerSecond);
+                window.solarSystemCanvas.Draw(window.solarSystemCanvas.Width);
+            };
+            timer.Start();
+            window.scaleSlider.ValueChanged += (sender, args) =>
+            {
+                window.solarSystemCanvas.setScale(args.NewValue);
+            };
+            window.timeScale.ValueChanged += (sender, args) =>
+            {
+                DaysPerSecond = args.NewValue;
+            };
+            window.frameScale.ValueChanged += (sender, args) =>
+            {
+                setFramesPerSecond(args.NewValue);
+            };
+        }
+        public TimeSpan timeSpanFromFps()
+        {
+            return TimeSpan.FromSeconds(1 / FramesPerSecond);
+        }
+    }
 }
