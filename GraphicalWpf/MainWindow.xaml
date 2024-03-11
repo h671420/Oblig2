@@ -25,13 +25,13 @@
             <Border BorderBrush="Black" BorderThickness="1">
                 <StackPanel>
                     <TextBlock Grid.Column="0" Grid.Row="2" Text="Days per second"></TextBlock>
-                    <Slider Grid.Column="0" Grid.Row="1" Name="timeScale" Value="0" Minimum="0" Maximum="3650"/>
+                    <Slider Grid.Column="0" Grid.Row="1" Name="timeSlider" Value="0" Minimum="0" Maximum="3650"/>
                 </StackPanel>
             </Border>
             <Border BorderBrush="Black" BorderThickness="1">
                 <StackPanel>
                     <TextBlock Grid.Column="0" Grid.Row="2" Text="Frames per second"></TextBlock>
-                    <Slider Grid.Column="0" Grid.Row="1" Name="frameScale" Value="0" Minimum="0" Maximum="200"/>
+                    <Slider Grid.Column="0" Grid.Row="1" Name="fpsSlider" Value="0" Minimum="0" Maximum="120"/>
                 </StackPanel>
             </Border>
         </StackPanel>

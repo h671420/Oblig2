@@ -27,11 +27,11 @@ namespace GraphicalWpf
             mainGrid.Children.Add(solarSystemCanvas);
             Grid.SetColumn(solarSystemCanvas, 1);
             Grid.SetRow(solarSystemCanvas, 0);
-
             Config config = new(this);
 
             PlanetBrowser.Content = createStackPanel(solarSystemCanvas.selectedObject);
         }
+
         private StackPanel createStackPanel(DrawingObject drawingObject)
         {
             StackPanel panel = new();
@@ -40,6 +40,7 @@ namespace GraphicalWpf
                 Content = drawingObject.spaceObject.GetType().Name + " " + drawingObject.spaceObject.name + " children: " + drawingObject.children.Count,
                 HorizontalContentAlignment = HorizontalAlignment.Left
             };
+
             button.KeyDown += (sender, args) =>
             {
                 Button clickedButton = (Button)sender;
@@ -96,58 +97,64 @@ namespace GraphicalWpf
     }
     public class Config
     {
-        private Window window;
+        private MainWindow mainWindow;
+        private Slider scaleSlider;
+        private Slider timeSlider;
+        private Slider fpsSlider;
         private DispatcherTimer timer;
-
-
-        private double FramesPerSecond;
-        public void setFramesPerSecond(double fps)
-        {
-            if (fps < 10)
-            {
-                timer.Stop();
-            }
-            else if (fps > 120)
-            {
-                //do nothing
-            }
-            else
-            {
-                FramesPerSecond = fps;
-            }
-        }
-        private double DaysPerSecond;
-        private double DistanceScale;
 
         public Config(MainWindow window)
         {
-            this.window = window;
+            this.mainWindow = window;
             this.timer = new DispatcherTimer();
-            this.DistanceScale = 60;
-            this.DaysPerSecond = 0;
-            this.FramesPerSecond = 60;
-            timer.Interval = timeSpanFromFps();
+            this.scaleSlider = mainWindow.scaleSlider;
+            this.timeSlider = mainWindow.timeSlider;
+            this.fpsSlider = mainWindow.fpsSlider;
             timer.Tick += (sender, args) => {
-                window.solarSystemCanvas.solarsystem.setDay(window.solarSystemCanvas.solarsystem.getDay() + DaysPerSecond / FramesPerSecond);
+                window.solarSystemCanvas.solarsystem.setDay
+                    (window.solarSystemCanvas.solarsystem.getDay()
+                    + timeSlider.Value / fpsSlider.Value);
                 window.solarSystemCanvas.Draw(window.solarSystemCanvas.Width);
             };
-            timer.Start();
-            window.scaleSlider.ValueChanged += (sender, args) =>
+            fpsSlider.ValueChanged += (sender, args) => {
+                adjustTimer();
+            };
+            scaleSlider.ValueChanged += (sender, args) =>
             {
                 window.solarSystemCanvas.setScale(args.NewValue);
+                if (!timer.IsEnabled)
+                    window.solarSystemCanvas.Draw(window.solarSystemCanvas.Width);
+
             };
-            window.timeScale.ValueChanged += (sender, args) =>
-            {
-                DaysPerSecond = args.NewValue;
-            };
-            window.frameScale.ValueChanged += (sender, args) =>
-            {
-                setFramesPerSecond(args.NewValue);
-            };
+            adjustTimer();
+            fpsSlider.KeyDown += slider_key;
+            scaleSlider.KeyDown += slider_key;
+            timeSlider.KeyDown += slider_key;
         }
-        public TimeSpan timeSpanFromFps()
+
+        private void slider_key(object sender, KeyEventArgs e)
         {
-            return TimeSpan.FromSeconds(1 / FramesPerSecond);
+            Slider slider = (Slider)sender;
+            switch (e.Key)
+            {
+                case Key.Left:
+                    slider.Value = slider.Value - slider.Maximum *0.5;
+                    break;
+                case Key.Right:
+                    slider.Value = slider.Value + slider.Maximum * 0.5;
+                    break;
+            }
+        }
+
+        public void adjustTimer()
+        {
+            if (fpsSlider.Value >= 10 && fpsSlider.Value <= 120)
+            {
+                timer.Interval = TimeSpan.FromSeconds(1.0 /fpsSlider.Value);
+                timer.Start();
+            }
+            else
+                timer.Stop();
         }
     }
 }
