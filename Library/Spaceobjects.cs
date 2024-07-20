@@ -5,6 +5,7 @@ using System.Drawing;
 using OfficeOpenXml;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection;
 
 namespace SpaceSim
 {
@@ -197,9 +198,10 @@ namespace SpaceSim
     {
         public static List<SpaceObject> fetchSpaceObjects()
         {
+            string filepath = AppDomain.CurrentDomain.BaseDirectory;
+            filepath = Path.GetFullPath(Path.Combine(filepath, @"..\..\..\.."));
+            filepath = Path.Combine(filepath, "Library", "Data", "Planets.xlsx");
 
-            //string filepath = "C:\\Users\\chris\\Source\\Repos\\Oblig2\\Library\\Planets.xlsx";
-            string filepath = "C:\\Users\\Admin\\OneDrive\\Skrivebord\\Skolegreier\\V2024\\DAT154\\Assignments\\Assignment 2\\Task1\\Library\\Planets.xlsx";
 
             List<SpaceObject> spaceObjects = new();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
