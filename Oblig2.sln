@@ -9,6 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task4ConsoleApp", "Task4Con
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GraphicalWpf", "GraphicalWpf\GraphicalWpf.csproj", "{8A0665D8-EFBC-458B-82AD-90EB89B0A008}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C71BBB97-519C-4470-A785-F23D87C91DB3}"
+	ProjectSection(SolutionItems) = preProject
+		Assignment 2.pdf = Assignment 2.pdf
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
